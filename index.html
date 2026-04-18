@@ -15,15 +15,14 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
-            /* Quitamos el fondo negro y usamos un color neutro de respaldo */
-            background-color: #f0f0f0; 
+            background-color: #1a1a1a; /* Color de respaldo oscuro */
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: 'Segoe UI', sans-serif;
         }
 
-        /* Imagen de fondo (Visible desde el inicio) */
+        /* Imagen de fondo del Lago Moraine */
         .background-image {
             position: fixed;
             top: 0;
@@ -31,33 +30,31 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            /* URL de la imagen de naturaleza */
             background-image: url('https://wallpapers.com/images/hd/4k-nature-moraine-lake-r66plwqa8m3z5reg.jpg');
             background-size: cover;
             background-position: center;
-            opacity: 1; /* Ahora es visible desde el inicio */
-            filter: blur(5px); /* Un pequeño desenfoque mientras carga */
-            transition: filter 1.5s ease-in-out;
+            filter: blur(8px); /* Empieza desenfocado */
+            transition: filter 2s ease-in-out;
         }
 
-        /* Panel Glassmorphism */
+        /* Panel Glassmorphism mejorado para mayor contraste sobre la foto */
         .glass-panel {
             z-index: 1;
             padding: 25px 40px;
             width: 350px;
-            background: rgba(255, 255, 255, 0.1); /* Ajustado para que se vea sobre la foto */
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.2); 
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             transition: opacity 1s ease-in-out, transform 1s ease-in-out;
         }
 
         .loader-box {
             width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.2);
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             overflow: hidden;
         }
@@ -70,14 +67,14 @@
             transition: width 0.1s linear;
         }
 
-        /* Estados de animación */
+        /* Clases de animación */
         .fade-out {
             opacity: 0;
-            transform: scale(0.9);
+            transform: scale(0.95);
             pointer-events: none;
         }
 
-        .remove-blur {
+        .clear-bg {
             filter: blur(0px) !important;
         }
     </style>
@@ -110,17 +107,16 @@
                 if (width >= 100) {
                     clearInterval(interval);
                     
-                    // Al terminar, quitamos el desenfoque del fondo y ocultamos el panel
                     setTimeout(() => {
                         panel.classList.add('fade-out');
-                        bg.classList.add('remove-blur');
-                    }, 500);
+                        bg.classList.add('clear-bg'); // Quita el blur al terminar
+                    }, 400);
 
                 } else {
                     width += 2;
                     bar.style.width = width + '%';
                 }
-            }, 50);
+            }, 40);
         }
 
         async function sendData() {
